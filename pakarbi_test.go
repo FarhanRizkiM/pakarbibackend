@@ -9,57 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func TestCreateNewUserRole(t *testing.T) {
-	var userdata User
-	userdata.Username = "pakarbi"
-	userdata.NPM = "1214000"
-	userdata.Password = "pakarbipass"
-	userdata.PasswordHash = "pakarbipass"
-	userdata.Email = "pakarbi2023@gmail.com"
-	userdata.Role = "user"
-	mconn := SetConnection("MONGOSTRING", "pakarbidbmongo")
-	CreateNewUserRole(mconn, "user", userdata)
-}
-
-// func TestDeleteUser(t *testing.T) {
-// 	mconn := SetConnection("MONGOSTRING", "pasabar13")
-// 	var userdata User
-// 	userdata.Username = "lolz"
-// 	DeleteUser(mconn, "user", userdata)
-// }
-
-func CreateNewUserToken(t *testing.T) {
-	var userdata User
-	userdata.Username = "pakarbi"
-	userdata.NPM = "1214000"
-	userdata.Password = "pakarbipass"
-	userdata.PasswordHash = "pakarbipass"
-	userdata.Email = "pakarbi2023@gmail.com"
-	userdata.Role = "user"
-
-	// Create a MongoDB connection
-	mconn := SetConnection("MONGOSTRING", "pakarbidbmongo")
-
-	// Call the function to create a user and generate a token
-	err := CreateUserAndAddToken("your_private_key_env", mconn, "user", userdata)
-
-	if err != nil {
-		t.Errorf("Error creating user and token: %v", err)
-	}
-}
-
-func TestGFCPostHandlerUser(t *testing.T) {
-	mconn := SetConnection("MONGOSTRING", "pakarbidbmongo")
-	var userdata User
-	userdata.Username = "pakarbi"
-	userdata.NPM = "1214000"
-	userdata.Password = "pakarbipass"
-	userdata.PasswordHash = "pakarbipass"
-	userdata.Email = "pakarbi2023@gmail.com"
-	userdata.Role = "user"
-	CreateNewUserRole(mconn, "user", userdata)
-}
-
+// Test Password Hash
 func TestGeneratePasswordHash(t *testing.T) {
 	passwordhash := "pakarbipass"
 	hash, _ := HashPassword(passwordhash) // ignore error for the sake of simplicity
@@ -69,6 +19,8 @@ func TestGeneratePasswordHash(t *testing.T) {
 	match := CheckPasswordHash(passwordhash, hash)
 	fmt.Println("Match:   ", match)
 }
+
+// Generate Private & Public Key
 func TestGeneratePrivateKeyPaseto(t *testing.T) {
 	privateKey, publicKey := watoken.GenerateKey()
 	fmt.Println(privateKey)
@@ -77,8 +29,9 @@ func TestGeneratePrivateKeyPaseto(t *testing.T) {
 	fmt.Println(hasil, err)
 }
 
+
 func TestHashFunction(t *testing.T) {
-	mconn := SetConnection("MONGOSTRING", "pakarbidbmongo")
+	mconn := SetConnection("MONGOSTRING", "PakarbiDB")
 	var userdata User
 	userdata.Username = "pakarbi"
 	userdata.PasswordHash = "pakarbipass"
@@ -94,7 +47,7 @@ func TestHashFunction(t *testing.T) {
 }
 
 func TestIsPasswordValid(t *testing.T) {
-	mconn := SetConnection("MONGOSTRING", "pakarbidbmongo")
+	mconn := SetConnection("MONGOSTRING", "PakarbiDB")
 	var userdata User
 	userdata.Username = "pakarbi"
 	userdata.PasswordHash = "pakarbipass"
@@ -104,7 +57,7 @@ func TestIsPasswordValid(t *testing.T) {
 }
 
 func TestUserFix(t *testing.T) {
-	mconn := SetConnection("MONGOSTRING", "pakarbidbmongo")
+	mconn := SetConnection("MONGOSTRING", "PakarbiDB")
 	var userdata User
 	userdata.Username = "pakarbi"
 	userdata.NPM = "1214000"

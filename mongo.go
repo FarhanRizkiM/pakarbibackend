@@ -8,8 +8,19 @@ import (
 	"github.com/aiteung/atdb"
 	"github.com/whatsauth/watoken"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// mongodb
+func MongoConnect(MongoString, dbname string) *mongo.Database {
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(os.Getenv(MongoString)))
+	if err != nil {
+		fmt.Printf("MongoConnect: %v\n", err)
+	}
+	return client.Database(dbname)
+}
 
 func GetConnectionMongo(MongoString, dbname string) *mongo.Database {
 	MongoInfo := atdb.DBInfo{
@@ -55,143 +66,111 @@ func CreateUser(mongoconn *mongo.Database, collection string, userdata User) int
 	return atdb.InsertOneDoc(mongoconn, collection, userdata)
 }
 
-func GetNameAndPassowrd(mongoconn *mongo.Database, collection string) []User {
-	user := atdb.GetAllDoc[[]User](mongoconn, collection)
-	return user
-}
-
-func CreateNewUserRole(mongoconn *mongo.Database, collection string, userdata User) interface{} {
-	// Hash the password before storing it
-	hashedPassword, err := HashPassword(userdata.PasswordHash)
-	if err != nil {
-		return err
-	}
-	userdata.PasswordHash = hashedPassword
-
-	// Insert the user data into the database
-	return atdb.InsertOneDoc(mongoconn, collection, userdata)
-}
-
-func CreateUserAndAddedToeken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Database, collection string, userdata User) interface{} {
-	// Hash the password before storing it
-	hashedPassword, err := HashPassword(userdata.PasswordHash)
-	if err != nil {
-		return err
-	}
-	userdata.PasswordHash = hashedPassword
-
-	// Insert the user data into the database
-	atdb.InsertOneDoc(mongoconn, collection, userdata)
-
-	// Create a token for the user
-	tokenstring, err := watoken.Encode(userdata.Username, os.Getenv(PASETOPRIVATEKEYENV))
-	if err != nil {
-		return err
-	}
-	userdata.Token = tokenstring
-
-	// Update the user data in the database
-	return atdb.ReplaceOneDoc(mongoconn, collection, bson.M{"username": userdata.Username}, userdata)
-}
-
-func DeleteUser(mongoconn *mongo.Database, collection string, userdata User) interface{} {
-	filter := bson.M{"username": userdata.Username}
-	return atdb.DeleteOneDoc(mongoconn, collection, filter)
-}
-
-func ReplaceOneDoc(mongoconn *mongo.Database, collection string, filter bson.M, userdata User) interface{} {
-	return atdb.ReplaceOneDoc(mongoconn, collection, filter, userdata)
-}
-
-func FindUser(mongoconn *mongo.Database, collection string, userdata User) User {
-	filter := bson.M{"username": userdata.Username}
-	return atdb.GetOneDoc[User](mongoconn, collection, filter)
-}
-
-func IsPasswordValid(mongoconn *mongo.Database, collection string, userdata User) bool {
-    filter := bson.M{
-        "$or": []bson.M{
-            {"npm": userdata.NPM},
-            {"email": userdata.Email},
-        },
-    }
-
-    var res User
-    err := mongoconn.Collection(collection).FindOne(context.TODO(), filter).Decode(&res)
-
-    if err == nil {
-        // Mengasumsikan res.PasswordHash adalah password terenkripsi yang tersimpan di database
-        return CheckPasswordHash(userdata.PasswordHash, res.PasswordHash)
-    }
-    return false
-}
-
-func IsPasswordValidEmail(mongoconn *mongo.Database, collection string, userdata User) bool {
-    filter := bson.M{
-        "$or": []bson.M{
-            {"email": userdata.Email},
-            {"npm": userdata.NPM},
-        },
-    }
-
-    var res User
-    err := mongoconn.Collection(collection).FindOne(context.TODO(), filter).Decode(&res)
-
-    if err == nil {
-        // Mengasumsikan res.PasswordHash adalah password terenkripsi yang tersimpan di database
-        return CheckPasswordHash(userdata.PasswordHash, res.PasswordHash)
-    }
-    return false
-}
-
-
-func CreateUserAndAddToken(privateKeyEnv string, mongoconn *mongo.Database, collection string, userdata User) error {
-	// Hash the password before storing it
-	hashedPassword, err := HashPassword(userdata.PasswordHash)
-	if err != nil {
-		return err
-	}
-	userdata.PasswordHash = hashedPassword
-
-	// Create a token for the user
-	tokenstring, err := watoken.Encode(userdata.Username, os.Getenv(privateKeyEnv))
-	if err != nil {
-		return err
-	}
-
-	userdata.Token = tokenstring
-
-	// Insert the user data into the MongoDB collection
-	if err := atdb.InsertOneDoc(mongoconn, collection, userdata.Username); err != nil {
-		return nil // Mengembalikan kesalahan yang dikembalikan oleh atdb.InsertOneDoc
-	}
-
-	// Return nil to indicate success
-	return nil
-}
-
 func InsertUserdata(MongoConn *mongo.Database, username, npm, password, passwordhash, email, role string) (InsertedID interface{}) {
 	req := new(User)
 	req.Username = username
 	req.NPM = npm
-	req.Password = password 
+	req.Password = password
 	req.PasswordHash = passwordhash
 	req.Email = email
 	req.Role = role
-	return InsertOneDoc(MongoConn, "user", req)
+	return InsertSatuDoc(MongoConn, "user", req)
 }
 
-func InsertOneDoc(db *mongo.Database, collection string, doc interface{}) (insertedID interface{}) {
+// Cek Password NPM
+func IsPasswordValid(mongoconn *mongo.Database, collection string, userdata User) bool {
+	filter := bson.M{
+		"$or": []bson.M{
+			{"npm": userdata.NPM},
+			{"email": userdata.Email},
+		},
+	}
+
+	var res User
+	err := mongoconn.Collection(collection).FindOne(context.TODO(), filter).Decode(&res)
+
+	if err == nil {
+		// Mengasumsikan res.PasswordHash adalah password terenkripsi yang tersimpan di database
+		return CheckPasswordHash(userdata.PasswordHash, res.PasswordHash)
+	}
+	return false
+}
+
+// Cek Password Email
+func IsPasswordValidEmail(mongoconn *mongo.Database, collection string, userdata User) bool {
+	filter := bson.M{
+		"$or": []bson.M{
+			{"email": userdata.Email},
+			{"npm": userdata.NPM},
+		},
+	}
+
+	var res User
+	err := mongoconn.Collection(collection).FindOne(context.TODO(), filter).Decode(&res)
+
+	if err == nil {
+		// Mengasumsikan res.PasswordHash adalah password terenkripsi yang tersimpan di database
+		return CheckPasswordHash(userdata.PasswordHash, res.PasswordHash)
+	}
+	return false
+}
+
+// FUNCTION CRUD
+func GetAllDocs(db *mongo.Database, col string, docs interface{}) interface{} {
+	collection := db.Collection(col)
+	filter := bson.M{}
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return fmt.Errorf("error GetAllDocs %s: %s", col, err)
+	}
+	err = cursor.All(context.TODO(), &docs)
+	if err != nil {
+		return err
+	}
+	return docs
+}
+
+func InsertOneDoc(db *mongo.Database, col string, doc interface{}) (insertedID primitive.ObjectID, err error) {
+	result, err := db.Collection(col).InsertOne(context.Background(), doc)
+	if err != nil {
+		return insertedID, fmt.Errorf("kesalahan server : insert")
+	}
+	insertedID = result.InsertedID.(primitive.ObjectID)
+	return insertedID, nil
+}
+
+func UpdateOneDoc(id primitive.ObjectID, db *mongo.Database, col string, doc interface{}) (err error) {
+	filter := bson.M{"_id": id}
+	result, err := db.Collection(col).UpdateOne(context.Background(), filter, bson.M{"$set": doc})
+	if err != nil {
+		return fmt.Errorf("error update: %v", err)
+	}
+	if result.ModifiedCount == 0 {
+		err = fmt.Errorf("tidak ada data yang diubah")
+		return
+	}
+	return nil
+}
+
+func DeleteOneDoc(_id primitive.ObjectID, db *mongo.Database, col string) error {
+	collection := db.Collection(col)
+	filter := bson.M{"_id": _id}
+	result, err := collection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		return fmt.Errorf("error deleting data for ID %s: %s", _id, err.Error())
+	}
+
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("data with ID %s not found", _id)
+	}
+
+	return nil
+}
+
+func InsertSatuDoc(db *mongo.Database, collection string, doc interface{}) (insertedID interface{}) {
 	insertResult, err := db.Collection(collection).InsertOne(context.TODO(), doc)
 	if err != nil {
 		fmt.Printf("InsertOneDoc: %v\n", err)
 	}
 	return insertResult.InsertedID
-}
-
-func InsertUser(db *mongo.Database, collection string, userdata User) string {
-	hash, _ := HashPassword(userdata.PasswordHash)
-	userdata.PasswordHash = hash
-	atdb.InsertOneDoc(db, collection, userdata)
-	return "Username : " + userdata.Username + "\nPassword : " + userdata.PasswordHash
 }
