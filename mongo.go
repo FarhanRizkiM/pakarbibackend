@@ -77,6 +77,33 @@ func InsertUserdata(MongoConn *mongo.Database, username, npm, password, password
 	return InsertSatuDoc(MongoConn, "user", req)
 }
 
+func CreateAdmin(mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
+	// Hash the password before storing it
+	hashedPassword, err := HashPassword(admindata.PasswordHash)
+	if err != nil {
+		return err
+	}
+	privateKey, publicKey := watoken.GenerateKey()
+	adminid := admindata.Username
+	tokenstring, err := watoken.Encode(adminid, privateKey)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(tokenstring)
+	// decode token to get userid
+	adminidstring := watoken.DecodeGetId(publicKey, tokenstring)
+	if adminidstring == "" {
+		fmt.Println("expire token")
+	}
+	fmt.Println(adminidstring)
+	admindata.Private = privateKey
+	admindata.Public = publicKey
+	admindata.PasswordHash = hashedPassword
+
+	// Insert the user data into the database
+	return atdb.InsertOneDoc(mongoconn, collection, admindata)
+}
+
 // Cek Password NPM
 func IsPasswordValid(mongoconn *mongo.Database, collection string, userdata User) bool {
 	filter := bson.M{
@@ -113,6 +140,13 @@ func IsPasswordValidEmail(mongoconn *mongo.Database, collection string, userdata
 		return CheckPasswordHash(userdata.PasswordHash, res.PasswordHash)
 	}
 	return false
+}
+
+// Cek Password Admin
+func IsPasswordValidAdmin(mongoconn *mongo.Database, collection string, userdata Admin) bool {
+	filter := bson.M{"username": userdata.Username}
+	res := atdb.GetOneDoc[Admin](mongoconn, collection, filter)
+	return CheckPasswordHash(userdata.Password, res.Password)
 }
 
 // FUNCTION CRUD

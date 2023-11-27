@@ -67,3 +67,14 @@ func TestUserFix(t *testing.T) {
 	userdata.Role = "user"
 	CreateUser(mconn, "user", userdata)
 }
+
+func TestAdminFix(t *testing.T) {
+	mconn := SetConnection("MONGOSTRING", "PakarbiDB")
+	var admindata Admin
+	admindata.Username = "adminpakarbi"
+	admindata.Password = "adminpakarbipass"
+	admindata.PasswordHash = "adminpakarbipass"
+	admindata.Email = "PakArbi2023@gmail.com"
+	admindata.Role = "admin"
+	CreateAdmin(mconn, "admin", admindata)
+}

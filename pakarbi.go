@@ -37,6 +37,7 @@ func GFCPostHandlerUser(MONGOCONNSTRINGENV, dbname, collectionname string, r *ht
 	return string(responseJSON)
 }
 
+// Login User NPM
 func GCFPostHandler(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	var Response Credential
 	Response.Status = false
@@ -65,6 +66,7 @@ func GCFPostHandler(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionn
 	return GCFReturnStruct(Response)
 }
 
+// Login User Email
 func GCFPostHandlerEmail(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	var Response Credential
 	Response.Status = false
@@ -98,17 +100,17 @@ func GCFReturnStruct(DataStuct any) string {
 	return string(jsondata)
 }
 
-// Login User
-func Login(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string {
+// Login Admin
+func LoginAdmin(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string {
 	var resp Credential
 	mconn := SetConnection(MongoEnv, dbname)
-	var datauser User
-	err := json.NewDecoder(r.Body).Decode(&datauser)
+	var dataadmin Admin
+	err := json.NewDecoder(r.Body).Decode(&dataadmin)
 	if err != nil {
 		resp.Message = "error parsing application/json: " + err.Error()
 	} else {
-		if IsPasswordValid(mconn, Colname, datauser) {
-			tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(Privatekey))
+		if IsPasswordValidAdmin(mconn, Colname, dataadmin) {
+			tokenstring, err := watoken.Encode(dataadmin.Username, os.Getenv(Privatekey))
 			if err != nil {
 				resp.Message = "Gagal Encode Token : " + err.Error()
 			} else {
