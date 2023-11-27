@@ -78,3 +78,22 @@ func TestAdminFix(t *testing.T) {
 	admindata.Role = "admin"
 	CreateAdmin(mconn, "admin", admindata)
 }
+
+func TestParkiran(t *testing.T) {
+	mconn := SetConnection("MONGOSTRING", "PakarbiDB")
+	var parkirandata Parkiran
+	parkirandata.ParkiranId = 1
+	parkirandata.Nama = "Farhan Rizki Maulana"
+	parkirandata.NPM = "1214020"
+	parkirandata.Jurusan = "D4 Teknik Informatika"
+	parkirandata.NamaKendaraan = "Supra X 125"
+	parkirandata.NomorKendaraan = "F 1234 NR"
+	parkirandata.JenisKendaraan = "Motor"
+	CreateNewParkiran(mconn, "parkiran", parkirandata)
+}
+
+func TestAllParkiran(t *testing.T) {
+	mconn := SetConnection("MONGOSTRING", "PakarbiDB")
+	parkiran := GetAllParkiran(mconn, "parkiran")
+	fmt.Println(parkiran)
+}

@@ -1,5 +1,7 @@
 package pakarbibackend
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type User struct {
 	Username     string `json:"username" bson:"username"`
 	NPM          string `json:"npm" bson:"npm"`
@@ -24,13 +26,14 @@ type Admin struct {
 }
 
 type Parkiran struct {
-	ParkiranId     string `json:"parkiranid" bson:"parkiranid"`
-	Nama           string `json:"nama" bson:"nama"`
-	NPM            string `json:"npm" bson:"npm"`
-	Jurusan        string `json:"jurusan" bson:"jurusan"`
-	NamaKendaraan  string `json:"namakendaraan" bson:"namakendaraan"`
-	NomorKendaraan string `bson:"nomorkendaraan,omitempty" json:"nomorkendaraan,omitempty"`
-	JenisKendaraan string `json:"jeniskendaraan,omitempty" bson:"jeniskendaraan,omitempty"`
+	ID             primitive.ObjectID `bson:"_id,omitempty" `
+	ParkiranId     int                `json:"parkiranid" bson:"parkiranid"`
+	Nama           string             `json:"nama" bson:"nama"`
+	NPM            string             `json:"npm" bson:"npm"`
+	Jurusan        string             `json:"jurusan" bson:"jurusan"`
+	NamaKendaraan  string             `json:"namakendaraan" bson:"namakendaraan"`
+	NomorKendaraan string             `bson:"nomorkendaraan,omitempty" json:"nomorkendaraan,omitempty"`
+	JenisKendaraan string             `json:"jeniskendaraan,omitempty" bson:"jeniskendaraan,omitempty"`
 }
 
 type Credential struct {

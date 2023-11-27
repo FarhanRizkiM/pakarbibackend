@@ -208,3 +208,42 @@ func InsertSatuDoc(db *mongo.Database, collection string, doc interface{}) (inse
 	}
 	return insertResult.InsertedID
 }
+
+// Parkiran
+func CreateNewParkiran(mongoconn *mongo.Database, collection string, parkirandata Parkiran) interface{} {
+	return atdb.InsertOneDoc(mongoconn, collection, parkirandata)
+}
+
+// Function Parkiran
+func CreateParkiran(mongoconn *mongo.Database, collection string, parkirandata Parkiran) interface{} {
+	return atdb.InsertOneDoc(mongoconn, collection, parkirandata)
+}
+
+func DeleteParkiran(mongoconn *mongo.Database, collection string, parkirandata Parkiran) interface{} {
+	filter := bson.M{"parkiranid": parkirandata.ParkiranId}
+	return atdb.DeleteOneDoc(mongoconn, collection, filter)
+}
+
+func UpdatedParkiran(mongoconn *mongo.Database, collection string, filter bson.M, parkirandata Parkiran) interface{} {
+	filter = bson.M{"parkiranid": parkirandata.ParkiranId}
+	return atdb.ReplaceOneDoc(mongoconn, collection, filter, parkirandata)
+}
+
+func GetAllParkiran(mongoconn *mongo.Database, collection string) []Parkiran {
+	parkiran := atdb.GetAllDoc[[]Parkiran](mongoconn, collection)
+	return parkiran
+}
+
+func GetAllParkiranID(mongoconn *mongo.Database, collection string, parkirandata Parkiran) Parkiran {
+	filter := bson.M{
+		"parkiranid":     parkirandata.ParkiranId,
+		"nama":           parkirandata.Nama,
+		"npm":            parkirandata.NPM,
+		"jurusan":        parkirandata.Jurusan,
+		"namakendaraan":  parkirandata.NamaKendaraan,
+		"nomorkendaraan": parkirandata.NomorKendaraan,
+		"jeniskendaraan": parkirandata.JenisKendaraan,
+	}
+	parkiranID := atdb.GetOneDoc[Parkiran](mongoconn, collection, filter)
+	return parkiranID
+}
