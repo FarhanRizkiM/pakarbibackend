@@ -63,7 +63,7 @@ func GCFDeleteParkiran(publickey, MONGOCONNSTRINGENV, dbname, colluser, collpark
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	var userdata User
 
-	gettoken := r.Header.Get("token")
+	gettoken := r.Header.Get("Login")
 	if gettoken == "" {
 		respon.Message = "Missing token in headers"
 	} else {
@@ -99,7 +99,7 @@ func GCFUpdateParkiran(publickey, MONGOCONNSTRINGENV, dbname, colluser, collpark
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	var userdata User
 
-	gettoken := r.Header.Get("token")
+	gettoken := r.Header.Get("Login")
 	if gettoken == "" {
 		response.Message = "Missing token in Headers"
 	} else {
