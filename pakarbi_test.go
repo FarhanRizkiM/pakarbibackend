@@ -82,7 +82,7 @@ func TestAdminFix(t *testing.T) {
 func TestParkiran(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakarbiDB")
 	var parkirandata Parkiran
-	parkirandata.ParkiranId = "1"
+	parkirandata.ParkiranId = 1
 	parkirandata.Nama = "Farhan Rizki Maulana"
 	parkirandata.NPM = "1214020"
 	parkirandata.Jurusan = "D4 Teknik Informatika"

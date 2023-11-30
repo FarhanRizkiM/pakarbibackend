@@ -8,7 +8,6 @@ import (
 	"github.com/aiteung/atdb"
 	"github.com/whatsauth/watoken"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -39,6 +38,9 @@ func SetConnection(MONGOCONNSTRINGENV, dbname string) *mongo.Database {
 	return atdb.MongoConnect(DBmongoinfo)
 }
 
+// end mongodb
+
+// FUNCTION USER
 func CreateUser(mongoconn *mongo.Database, collection string, userdata User) interface{} {
 	// Hash the password before storing it
 	hashedPassword, err := HashPassword(userdata.PasswordHash)
@@ -74,7 +76,7 @@ func InsertUserdata(MongoConn *mongo.Database, username, npm, password, password
 	req.PasswordHash = passwordhash
 	req.Email = email
 	req.Role = role
-	return InsertSatuDoc(MongoConn, "user", req)
+	return InsertOneDoc(MongoConn, "user", req)
 }
 
 func CreateAdmin(mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
@@ -150,58 +152,7 @@ func IsPasswordValidAdmin(mongoconn *mongo.Database, collection string, userdata
 }
 
 // FUNCTION CRUD
-func GetAllDocs(db *mongo.Database, col string, docs interface{}) interface{} {
-	collection := db.Collection(col)
-	filter := bson.M{}
-	cursor, err := collection.Find(context.TODO(), filter)
-	if err != nil {
-		return fmt.Errorf("error GetAllDocs %s: %s", col, err)
-	}
-	err = cursor.All(context.TODO(), &docs)
-	if err != nil {
-		return err
-	}
-	return docs
-}
-
-func InsertOneDoc(db *mongo.Database, col string, doc interface{}) (insertedID primitive.ObjectID, err error) {
-	result, err := db.Collection(col).InsertOne(context.Background(), doc)
-	if err != nil {
-		return insertedID, fmt.Errorf("kesalahan server : insert")
-	}
-	insertedID = result.InsertedID.(primitive.ObjectID)
-	return insertedID, nil
-}
-
-func UpdateOneDoc(id primitive.ObjectID, db *mongo.Database, col string, doc interface{}) (err error) {
-	filter := bson.M{"_id": id}
-	result, err := db.Collection(col).UpdateOne(context.Background(), filter, bson.M{"$set": doc})
-	if err != nil {
-		return fmt.Errorf("error update: %v", err)
-	}
-	if result.ModifiedCount == 0 {
-		err = fmt.Errorf("tidak ada data yang diubah")
-		return
-	}
-	return nil
-}
-
-func DeleteOneDoc(_id primitive.ObjectID, db *mongo.Database, col string) error {
-	collection := db.Collection(col)
-	filter := bson.M{"_id": _id}
-	result, err := collection.DeleteOne(context.TODO(), filter)
-	if err != nil {
-		return fmt.Errorf("error deleting data for ID %s: %s", _id, err.Error())
-	}
-
-	if result.DeletedCount == 0 {
-		return fmt.Errorf("data with ID %s not found", _id)
-	}
-
-	return nil
-}
-
-func InsertSatuDoc(db *mongo.Database, collection string, doc interface{}) (insertedID interface{}) {
+func InsertOneDoc(db *mongo.Database, collection string, doc interface{}) (insertedID interface{}) {
 	insertResult, err := db.Collection(collection).InsertOne(context.TODO(), doc)
 	if err != nil {
 		fmt.Printf("InsertOneDoc: %v\n", err)
@@ -209,41 +160,35 @@ func InsertSatuDoc(db *mongo.Database, collection string, doc interface{}) (inse
 	return insertResult.InsertedID
 }
 
-// Parkiran
-func CreateNewParkiran(mongoconn *mongo.Database, collection string, parkirandata Parkiran) interface{} {
-	return atdb.InsertOneDoc(mongoconn, collection, parkirandata)
-}
+// func UpdateOneDoc(id primitive.ObjectID, db *mongo.Database, col string, doc interface{}) (err error) {
+// 	filter := bson.M{"_id": id}
+// 	result, err := db.Collection(col).UpdateOne(context.Background(), filter, bson.M{"$set": doc})
+// 	if err != nil {
+// 		return fmt.Errorf("error update: %v", err)
+// 	}
+// 	if result.ModifiedCount == 0 {
+// 		err = fmt.Errorf("tidak ada data yang diubah")
+// 		return
+// 	}
+// 	return nil
+// }
 
-// Function Parkiran
-func CreateParkiran(mongoconn *mongo.Database, collection string, parkirandata Parkiran) interface{} {
-	return atdb.InsertOneDoc(mongoconn, collection, parkirandata)
-}
+// func DeleteOneDoc(_id primitive.ObjectID, db *mongo.Database, col string) error {
+// 	collection := db.Collection(col)
+// 	filter := bson.M{"_id": _id}
+// 	result, err := collection.DeleteOne(context.TODO(), filter)
+// 	if err != nil {
+// 		return fmt.Errorf("error deleting data for ID %s: %s", _id, err.Error())
+// 	}
 
-func DeleteParkiran(mongoconn *mongo.Database, collection string, parkirandata Parkiran) interface{} {
-	filter := bson.M{"parkiranid": parkirandata.ParkiranId}
-	return atdb.DeleteOneDoc(mongoconn, collection, filter)
-}
+// 	if result.DeletedCount == 0 {
+// 		return fmt.Errorf("data with ID %s not found", _id)
+// 	}
 
-func UpdatedParkiran(mongoconn *mongo.Database, collection string, filter bson.M, parkirandata Parkiran) interface{} {
-	filter = bson.M{"parkiranid": parkirandata.ParkiranId}
-	return atdb.ReplaceOneDoc(mongoconn, collection, filter, parkirandata)
-}
+// 	return nil
+// }
 
-func GetAllParkiran(mongoconn *mongo.Database, collection string) []Parkiran {
-	parkiran := atdb.GetAllDoc[[]Parkiran](mongoconn, collection)
-	return parkiran
-}
-
-func GetAllParkiranID(mongoconn *mongo.Database, collection string, parkirandata Parkiran) Parkiran {
-	filter := bson.M{
-		"parkiranid":     parkirandata.ParkiranId,
-		"nama":           parkirandata.Nama,
-		"npm":            parkirandata.NPM,
-		"jurusan":        parkirandata.Jurusan,
-		"namakendaraan":  parkirandata.NamaKendaraan,
-		"nomorkendaraan": parkirandata.NomorKendaraan,
-		"jeniskendaraan": parkirandata.JenisKendaraan,
-	}
-	parkiranID := atdb.GetOneDoc[Parkiran](mongoconn, collection, filter)
-	return parkiranID
+func FindUser(mongoconn *mongo.Database, collection string, userdata User) User {
+	filter := bson.M{"npm": userdata.NPM}
+	return atdb.GetOneDoc[User](mongoconn, collection, filter)
 }

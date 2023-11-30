@@ -14,11 +14,3 @@ func CheckPasswordHash(passwordhash, hash string) bool {
 	return err == nil
 }
 
-func CreateResponse(status bool, message string, data interface{}) Response {
-	response := Response{
-		Status:  status,
-		Message: message,
-		Data:    data,
-	}
-	return response
-}

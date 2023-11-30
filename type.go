@@ -1,6 +1,10 @@
 package pakarbibackend
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type User struct {
 	Username     string `json:"username" bson:"username"`
@@ -27,13 +31,14 @@ type Admin struct {
 
 type Parkiran struct {
 	ID             primitive.ObjectID `bson:"_id,omitempty" `
-	ParkiranId     string                `json:"parkiranid" bson:"parkiranid"`
+	ParkiranId     int                `json:"parkiranid" bson:"parkiranid"`
 	Nama           string             `json:"nama" bson:"nama"`
 	NPM            string             `json:"npm" bson:"npm"`
 	Jurusan        string             `json:"jurusan" bson:"jurusan"`
 	NamaKendaraan  string             `json:"namakendaraan" bson:"namakendaraan"`
 	NomorKendaraan string             `bson:"nomorkendaraan,omitempty" json:"nomorkendaraan,omitempty"`
 	JenisKendaraan string             `json:"jeniskendaraan,omitempty" bson:"jeniskendaraan,omitempty"`
+	Status         bool               `json:"status" bson:"status"`
 }
 
 type Credential struct {
@@ -46,4 +51,12 @@ type Response struct {
 	Status  bool        `json:"status" bson:"status"`
 	Message string      `json:"message" bson:"message"`
 	Data    interface{} `json:"data" bson:"data"`
+}
+
+type Payload struct {
+	Id   primitive.ObjectID `json:"id"`
+	Role string             `json:"role"`
+	Exp  time.Time          `json:"exp"`
+	Iat  time.Time          `json:"iat"`
+	Nbf  time.Time          `json:"nbf"`
 }
