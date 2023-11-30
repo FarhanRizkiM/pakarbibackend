@@ -17,7 +17,7 @@ func GCFInsertParkiran(publickey, MONGOCONNSTRINGENV, dbname, colluser, collpark
 	response.Status = false
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	var userdata User
-	gettoken := r.Header.Get("token")
+	gettoken := r.Header.Get("Login")
 	if gettoken == "" {
 		response.Message = "Missing token in headers"
 	} else {
