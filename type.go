@@ -27,7 +27,7 @@ type Admin struct {
 
 type Parkiran struct {
 	ID             primitive.ObjectID `bson:"_id,omitempty" `
-	ParkiranId     int                `json:"parkiranid" bson:"parkiranid"`
+	ParkiranId     string                `json:"parkiranid" bson:"parkiranid"`
 	Nama           string             `json:"nama" bson:"nama"`
 	NPM            string             `json:"npm" bson:"npm"`
 	Jurusan        string             `json:"jurusan" bson:"jurusan"`
